@@ -7,7 +7,7 @@ Paste this prompt into **Cortex Code (CoCo)** to create a stored procedure that 
 ## Prompt — Create the procedure
 
 ```
-Create a stored procedure olist_db.raw.generate_demo_orders(num_rows INTEGER)
+Create a stored procedure olist_db.raw.generate_incremental_orders(num_rows INTEGER)
 using SQL language that generates synthetic orders. It should:
 
 - Capture row counts in orders and order_items before insertion
@@ -43,7 +43,7 @@ How many rows are currently in olist_db.raw.orders and olist_db.raw.order_items?
 Call olist_db.raw.generate_demo_orders(500)
 ```
 
-### Step 3 — Trigger refresh (Tier 3 only — Snowflake cascades upstream)
+### Step 3 — Trigger refresh (Gold layer only — Snowflake cascades upstream)
 
 ```
 Refresh daily_sales_metrics and product_performance_metrics in olist_db.analytics.
@@ -69,12 +69,12 @@ total_revenue descending, limit 10.
 
 ## What to observe
 
-| Table | Expected refresh_action | Why |
-|---|---|---|
-| `orders_enriched` | `INCREMENTAL` | Only the 500 new order rows are processed |
-| `order_items_enriched` | `INCREMENTAL` | Only new item rows processed |
-| `order_fact` | `INCREMENTAL` | Joins only the new rows |
-| `daily_sales_metrics` | `INCREMENTAL` | New date rows appended |
-| `product_performance_metrics` | `FULL` | Existing product aggregate rows must be recalculated — expected behaviour |
+| Table                         | Expected refresh_action | Why                                                                       |
+| ----------------------------- | ----------------------- | ------------------------------------------------------------------------- |
+| `orders_enriched`             | `INCREMENTAL`           | Only the 500 new order rows are processed                                 |
+| `order_items_enriched`        | `INCREMENTAL`           | Only new item rows processed                                              |
+| `order_fact`                  | `INCREMENTAL`           | Joins only the new rows                                                   |
+| `daily_sales_metrics`         | `INCREMENTAL`           | New date rows appended                                                    |
+| `product_performance_metrics` | `FULL`                  | Existing product aggregate rows must be recalculated — expected behaviour |
 
 > **Why FULL on product_performance_metrics?** When 500 new orders arrive for products that already exist in the table, their aggregate rows (total_revenue, avg_review_score, etc.) must be updated. Snowflake rewrites the affected groups. This mirrors the behaviour documented in the original Tasty Bytes quickstart and is still far more efficient than processing the full source dataset.

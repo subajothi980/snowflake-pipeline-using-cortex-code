@@ -3,7 +3,7 @@
 # 🛒 Olist E-Commerce — Snowflake Dynamic Tables Pipeline
 
 **A production-grade, three-tier declarative data pipeline using Snowflake Dynamic Tables**  
-Built with the [Brazilian E-Commerce (Olist) dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) · Mirrors the [Snowflake Dynamic Tables Quickstart](https://www.snowflake.com/en/developers/guides/snowflake-dynamic-tables-data-pipeline/)
+Built with the [Brazilian E-Commerce (Olist) dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)·
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-Dynamic%20Tables-29B5E8?style=flat-square&logo=snowflake&logoColor=white)
 ![SQL](https://img.shields.io/badge/Language-SQL-orange?style=flat-square)
@@ -16,9 +16,11 @@ Built with the [Brazilian E-Commerce (Olist) dataset](https://www.kaggle.com/dat
 
 ## Overview
 
-This project demonstrates how to build an **autonomous, self-refreshing data pipeline** using Snowflake Dynamic Tables — without writing a single stored procedure, stream, or task to orchestrate the flow. You declare *what* you want using SQL; Snowflake handles the rest.
+This project demonstrates how to build an **autonomous, self-refreshing data pipeline** using Snowflake Dynamic Tables — without writing a single stored procedure, stream, or task to orchestrate the flow. You declare _what_ you want using SQL; Snowflake handles the rest.
 
-The pipeline ingests raw Olist e-commerce data (orders, products, sellers, reviews, payments) and transforms it through three tiers into business-ready aggregated metrics — with **incremental refresh**, **dependency-graph management**, and a **Cortex AI Agent** for natural language querying on top.
+Dynamic Tables let you declare what your pipeline should produce using SQL. Cortex Code lets you describe what you want in plain English and generates the SQL for you. Together, they represent a fully declarative approach to data engineering — from intent to production pipeline, no boilerplate required.
+
+The pipeline ingests raw Olist e-commerce data (orders, products, sellers, reviews, payments) and transforms it through three layers into business-ready aggregated metrics — with **incremental refresh**, **dependency-graph management**, and a **Cortex AI Agent** for natural language querying on top.
 
 ---
 
@@ -26,7 +28,7 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  olist_db.raw  (source tables)                                      │
+│  olist_db.raw  (source tables) - Bronze                                     │
 │                                                                     │
 │  orders  order_items  order_payments  order_reviews                 │
 │  customers  sellers  products  product_category_name_translation    │
@@ -34,7 +36,7 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│  olist_db.analytics  —  TIER 1  (TARGET_LAG = DOWNSTREAM)          │
+│  olist_db.analytics  —  Silver  (TARGET_LAG = DOWNSTREAM)          │
 │                                                                     │
 │  ┌─────────────────────────┐  ┌──────────────────────────────────┐  │
 │  │   orders_enriched       │  │   order_items_enriched           │  │
@@ -47,7 +49,7 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
                 └────────────────┬───────────────┘
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│  olist_db.analytics  —  TIER 2  (TARGET_LAG = DOWNSTREAM)          │
+│  olist_db.analytics  —  Silver  (TARGET_LAG = DOWNSTREAM)          │
 │                                                                     │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │   order_fact                                                │   │
@@ -59,7 +61,7 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│  olist_db.analytics  —  TIER 3  (TARGET_LAG = 1 hour)              │
+│  olist_db.analytics  —  Gold  (TARGET_LAG = 1 hour)              │
 │                                                                     │
 │  ┌──────────────────────────┐  ┌──────────────────────────────────┐ │
 │  │  daily_sales_metrics     │  │  product_performance_metrics     │ │
@@ -82,14 +84,15 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
 
 ## Key Concepts
 
-| Concept | How it's used |
-|---|---|
-| `TARGET_LAG = DOWNSTREAM` | Tier 1 & 2 tables refresh only when requested by the next tier — no wasted compute |
-| `TARGET_LAG = '1 hour'` | Tier 3 aggregates stay at most 1 hour behind source data |
-| `INITIALIZE = ON_SCHEDULE` | All tables are created empty; the first load is triggered manually, separating *definition* from *execution* |
-| **Incremental refresh** | Snowflake processes only changed rows per cycle — not the full dataset |
-| **Dependency graph** | Refreshing a Tier 3 table automatically cascades through Tier 2 → Tier 1 in the right order |
-| **Cortex Agent** | A natural language interface powered by a semantic view over all 5 dynamic tables |
+| Concept                    | How it's used                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Cortex Code**            | Data engineering co-pilot in Snowsight                                                                       |
+| `TARGET_LAG = DOWNSTREAM`  | Tier 1 & 2 tables refresh only when requested by the next tier — no wasted compute                           |
+| `TARGET_LAG = '1 hour'`    | Tier 3 aggregates stay at most 1 hour behind source data                                                     |
+| `INITIALIZE = ON_SCHEDULE` | All tables are created empty; the first load is triggered manually, separating _definition_ from _execution_ |
+| **Incremental refresh**    | Snowflake processes only changed rows per cycle — not the full dataset                                       |
+| **Dependency graph**       | Refreshing a Tier 3 table automatically cascades through Tier 2 → Tier 1 in the right order                  |
+| **Cortex Agent**           | A natural language interface powered by a semantic view over all 5 dynamic tables                            |
 
 ---
 
@@ -99,29 +102,28 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
 
 > Real orders from 2016–2018 across multiple Brazilian marketplaces. The multi-table structure (order headers, line items, products, sellers, reviews, payments) makes it a near-perfect structural mirror to the Tasty Bytes dataset used in the original Snowflake quickstart.
 
-| CSV file | Raw table | Rows |
-|---|---|---|
-| `olist_orders_dataset.csv` | `raw.orders` | ~99k |
-| `olist_order_items_dataset.csv` | `raw.order_items` | ~112k |
-| `olist_order_payments_dataset.csv` | `raw.order_payments` | ~104k |
-| `olist_order_reviews_dataset.csv` | `raw.order_reviews` | ~99k |
-| `olist_customers_dataset.csv` | `raw.customers` | ~99k |
-| `olist_sellers_dataset.csv` | `raw.sellers` | ~3k |
-| `olist_products_dataset.csv` | `raw.products` | ~32k |
-| `product_category_name_translation.csv` | `raw.product_category_name_translation` | 71 |
-| `olist_geolocation_dataset.csv` | _(optional — not used in pipeline)_ | — |
+| CSV file                                | Raw table                               | Rows  |
+| --------------------------------------- | --------------------------------------- | ----- |
+| `olist_orders_dataset.csv`              | `raw.orders`                            | ~99k  |
+| `olist_order_items_dataset.csv`         | `raw.order_items`                       | ~112k |
+| `olist_order_payments_dataset.csv`      | `raw.order_payments`                    | ~104k |
+| `olist_order_reviews_dataset.csv`       | `raw.order_reviews`                     | ~99k  |
+| `olist_customers_dataset.csv`           | `raw.customers`                         | ~99k  |
+| `olist_sellers_dataset.csv`             | `raw.sellers`                           | ~3k   |
+| `olist_products_dataset.csv`            | `raw.products`                          | ~32k  |
+| `product_category_name_translation.csv` | `raw.product_category_name_translation` | 71    |
+| `olist_geolocation_dataset.csv`         | _(optional — not used in pipeline)_     | —     |
 
 ---
 
 ## Prerequisites
 
-| Requirement | Details |
-|---|---|
-| **Snowflake account** | Enterprise edition · AWS US-West-2 preferred · `ACCOUNTADMIN` access required · [Free trial](https://signup.snowflake.com/) works |
-| **Cortex Code (CoCo)** | Enable in Snowsight → Settings · Used to generate pipeline SQL from natural language |
-| **Kaggle account** | Free · Accept dataset license before downloading |
-| **SnowSQL CLI** | Optional · For bulk CSV uploads via `PUT` command · [Install guide](https://docs.snowflake.com/en/user-guide/snowsql-install-config) |
-| **Kaggle CLI** | Optional · `pip install kaggle` · For scripted dataset download |
+| Requirement            | Details                                                                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Snowflake account**  | Enterprise edition · AWS US-West-2 preferred · `ACCOUNTADMIN` access required · [Free trial](https://signup.snowflake.com/) works |
+| **Cortex Code (CoCo)** | Enable in Snowsight → Settings · Used to generate pipeline SQL from natural language                                              |
+| **Kaggle account**     | Free · Accept dataset license before downloading                                                                                  |
+| **Snowsight**          | Upload the bulk CSV files to the internal stage. "Data → Add Data" uploader                                                       |
 
 ---
 
@@ -130,28 +132,26 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
 ### 1 — Clone & download dataset
 
 ```bash
-git clone https://github.com/YOUR_ORG/olist-snowflake-pipeline.git
-cd olist-snowflake-pipeline
+git clone https://github.com/subajothi980/snowflake-pipeline-using-cortex-code.git
+cd snowflake-pipeline-using-cortex-code
 
-# Download via Kaggle CLI (requires ~/.kaggle/kaggle.json credentials)
-pip install kaggle
-kaggle datasets download -d olistbr/brazilian-ecommerce -p data/raw --unzip
-
-# Or download manually from:
-# https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
-# and place the CSV files in data/raw/
+## Download dataset manually from:
+https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+and place the CSV files in data/raw/
 ```
 
 ### 2 — Set up the Snowflake environment
 
-Open **Snowsight → Worksheets** and run as `ACCOUNTADMIN`:
+Open **Snowsight → Cortex code** panel by clicking the Cortex Code icon in the lower-right corner of Snowsight.
 
 ```bash
-# Via SnowSQL
-snowsql -c my_connection -f setup/01_environment.sql
+You'll see a chat interface. You'll paste prompts from each section directly into CoCo. CoCo will generate the SQL, explain what it's doing, and execute it for you.
 ```
 
+Copy "Prompt 1" from /cortex_prompts/00_environment_setup.md and paste it in the CoCo chat window and enter.
+
 This creates:
+
 - Role `olist_role` with necessary privileges
 - Warehouse `olist_wh` (XL, 60s auto-suspend)
 - Database `olist_db` with schemas `raw` and `analytics`
@@ -159,6 +159,12 @@ This creates:
 - Internal stage `olist_db.raw.olist_stage` with CSV file format
 
 ### 3 — Upload and load CSVs
+
+-- Then load (repeat for all 8 tables):
+COPY INTO olist_db.raw.orders
+FROM @olist_db.raw.olist_stage/orders/
+FILE_FORMAT = olist_db.public.csv_format
+ON_ERROR = CONTINUE;
 
 ```bash
 snowsql -c my_connection -f setup/02_upload_and_load.sql
@@ -207,7 +213,7 @@ Access your agent in **Snowsight → AI & ML → Snowflake Intelligence**.
 ## Repository Structure
 
 ```
-olist-snowflake-pipeline/
+snowflake-pipeline-using-cortex-code/
 │
 ├── README.md
 ├── .gitignore
@@ -268,6 +274,7 @@ LIMIT 10;
 ```
 
 **What to look for:**
+
 - `refresh_action = INCREMENTAL` on `orders_enriched`, `order_items_enriched`, `order_fact`, and `daily_sales_metrics` — only new rows processed
 - `refresh_action = FULL` on `product_performance_metrics` — existing product aggregate rows must be recalculated when new orders arrive for already-seen products (expected behaviour, identical to the original Tasty Bytes guide)
 
@@ -293,24 +300,24 @@ You can also view the **dependency graph** visually in Snowsight:
 
 Once the Cortex Agent is deployed, try these in **Snowflake Intelligence**:
 
-- *"Which product categories have the worst average delivery delays?"*
-- *"Top 10 sellers by total revenue — show satisfaction rate alongside"*
-- *"What's the average review score by customer state?"*
-- *"Compare weekend vs weekday order volumes over the last 3 months"*
-- *"Which states have the highest freight-to-price ratios?"*
-- *"Show me revenue trend by month with a breakdown by payment type"*
+- _"Which product categories have the worst average delivery delays?"_
+- _"Top 10 sellers by total revenue — show satisfaction rate alongside"_
+- _"What's the average review score by customer state?"_
+- _"Compare weekend vs weekday order volumes over the last 3 months"_
+- _"Which states have the highest freight-to-price ratios?"_
+- _"Show me revenue trend by month with a breakdown by payment type"_
 
 ---
 
 ## Schema Mapping — Tasty Bytes vs Olist
 
-| Tasty Bytes (original quickstart) | Olist equivalent |
-|---|---|
-| `raw.order_header` | `raw.orders` + `raw.customers` |
-| `raw.order_detail` | `raw.order_items` |
-| `raw.menu` | `raw.products` + `raw.sellers` + `raw.product_category_name_translation` |
-| Revenue / discount metrics | Revenue + freight + delivery delay + review score |
-| Food truck brand / type dims | Product category (English) + seller state dims |
+| Tasty Bytes (original quickstart) | Olist equivalent                                                         |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `raw.order_header`                | `raw.orders` + `raw.customers`                                           |
+| `raw.order_detail`                | `raw.order_items`                                                        |
+| `raw.menu`                        | `raw.products` + `raw.sellers` + `raw.product_category_name_translation` |
+| Revenue / discount metrics        | Revenue + freight + delivery delay + review score                        |
+| Food truck brand / type dims      | Product category (English) + seller state dims                           |
 
 ---
 
@@ -356,15 +363,15 @@ The `cortex-prompts/` folder contains **copy-paste prompts** for Snowflake's AI 
 
 ### Prompt sequence
 
-| Prompt file | Builds |
-|---|---|
-| `cortex-prompts/00_environment_setup.md` | Role, warehouse, DB, schemas, 8 raw tables, stage |
-| `cortex-prompts/01_tier1_enrichment.md` | `orders_enriched` + `order_items_enriched` |
-| `cortex-prompts/02_tier2_fact_table.md` | `order_fact` wide fact table |
-| `cortex-prompts/03_tier3_metrics.md` | `daily_sales_metrics` + `product_performance_metrics` |
-| `cortex-prompts/04_trigger_initial_load.md` | Triggers the first full pipeline refresh |
-| `cortex-prompts/05_generate_test_data.md` | Stored procedure for synthetic order generation |
-| `cortex-prompts/06_monitoring.md` | Refresh history + health check queries |
-| `cortex-prompts/07_semantic_view_and_agent.md` | Cortex semantic view + AI Agent |
+| Prompt file                                    | Builds                                                |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| `cortex-prompts/00_environment_setup.md`       | Role, warehouse, DB, schemas, 8 raw tables, stage     |
+| `cortex-prompts/01_tier1_enrichment.md`        | `orders_enriched` + `order_items_enriched`            |
+| `cortex-prompts/02_tier2_fact_table.md`        | `order_fact` wide fact table                          |
+| `cortex-prompts/03_tier3_metrics.md`           | `daily_sales_metrics` + `product_performance_metrics` |
+| `cortex-prompts/04_trigger_initial_load.md`    | Triggers the first full pipeline refresh              |
+| `cortex-prompts/05_generate_test_data.md`      | Stored procedure for synthetic order generation       |
+| `cortex-prompts/06_monitoring.md`              | Refresh history + health check queries                |
+| `cortex-prompts/07_semantic_view_and_agent.md` | Cortex semantic view + AI Agent                       |
 
 > The SQL files in `pipeline/`, `procedures/`, and `agent/` are the exact DDL CoCo should produce — use them as a reference or run them directly as a fallback if needed.

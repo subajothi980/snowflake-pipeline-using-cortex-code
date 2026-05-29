@@ -2,7 +2,7 @@
 
 Paste this prompt into **Cortex Code (CoCo)** to kick off the first full data load across all five Dynamic Tables.
 
-> **Run this after:** All five Dynamic Tables have been created (Tier 1, 2, and 3).  
+> **Run this after:** All five Dynamic Tables have been created (Silver and Gold layers).  
 > All were created with `INITIALIZE = ON_SCHEDULE`, so they are currently empty.
 
 ---
@@ -18,16 +18,16 @@ Snowflake will handle the upstream dependencies automatically.
 
 ## What happens
 
-You only trigger the two Tier 3 tables — but Snowflake resolves the full dependency graph and refreshes in this order:
+You only trigger the two Gold layer tables — but Snowflake resolves the full dependency graph and refreshes in this order:
 
 ```
-1. orders_enriched          (Tier 1 — DOWNSTREAM, triggered by Tier 2)
-2. order_items_enriched     (Tier 1 — DOWNSTREAM, triggered by Tier 2)
+1. orders_enriched          (Silver — DOWNSTREAM, triggered by Silver fact table)
+2. order_items_enriched     (Silver — DOWNSTREAM, triggered by Silver fact table)
         ↓
-3. order_fact               (Tier 2 — DOWNSTREAM, triggered by Tier 3)
+3. order_fact               (Silver fact table — DOWNSTREAM, triggered by Gold layer)
         ↓
-4. daily_sales_metrics      (Tier 3 — you triggered this)
-5. product_performance_metrics  (Tier 3 — you triggered this)
+4. daily_sales_metrics      (Gold layer — you triggered this)
+5. product_performance_metrics  (Gold layer — you triggered this)
 ```
 
 This is the **dependency graph** in action — you only need to trigger the leaf nodes.
@@ -64,8 +64,8 @@ UNION ALL SELECT 'product_performance rows',     COUNT(*) FROM olist_db.analytic
 
 Expected approximate values:
 
-| Table | Expected rows |
-|---|---|
-| `order_fact` | ~112,000 |
-| `daily_sales_metrics` | ~5,000–8,000 (date × state combinations) |
-| `product_performance_metrics` | ~30,000–40,000 (product × seller state) |
+| Table                         | Expected rows                            |
+| ----------------------------- | ---------------------------------------- |
+| `order_fact`                  | ~112,000                                 |
+| `daily_sales_metrics`         | ~5,000–8,000 (date × state combinations) |
+| `product_performance_metrics` | ~30,000–40,000 (product × seller state)  |

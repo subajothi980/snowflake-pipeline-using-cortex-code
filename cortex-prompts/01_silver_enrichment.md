@@ -1,6 +1,6 @@
-# CoCo Prompt 01 — Tier 1: Enrichment Dynamic Tables
+# CoCo Prompt 02 — Silver Layer: Enrichment Dynamic Tables
 
-Paste this prompt into **Cortex Code (CoCo)** to build both Tier 1 Dynamic Tables.
+Paste this prompt into **Cortex Code (CoCo)** to build both Silver Layer Dynamic Tables.
 
 > **Tip:** Before submitting, press **Shift+Tab** to switch CoCo into **Plan mode**. Review the generated SQL before letting it execute — useful for large DDL changes like this.
 
@@ -9,7 +9,7 @@ Paste this prompt into **Cortex Code (CoCo)** to build both Tier 1 Dynamic Table
 ## Prompt
 
 ```
-Build Tier 1 dynamic tables in olist_db.analytics using warehouse olist_wh.
+Build Silver Layer dynamic tables in olist_db.analytics using warehouse olist_wh.
 Use INITIALIZE = 'ON_SCHEDULE' and TARGET_LAG = DOWNSTREAM for both tables.
 
 Table 1 — orders_enriched:
@@ -43,10 +43,10 @@ Table 2 — order_items_enriched:
 
 ## What CoCo will create
 
-| Dynamic Table | Source | TARGET_LAG | Key additions |
-|---|---|---|---|
-| `analytics.orders_enriched` | `raw.orders` + `raw.customers` | DOWNSTREAM | `order_date`, `day_name`, `order_hour`, `delivery_delay_days`, `is_delivered` |
-| `analytics.order_items_enriched` | `raw.order_items` + `raw.products` + `raw.sellers` + translation | DOWNSTREAM | `category_english`, `total_item_value`, `freight_ratio` |
+| Dynamic Table                    | Source                                                           | TARGET_LAG | Key additions                                                                 |
+| -------------------------------- | ---------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------- |
+| `analytics.orders_enriched`      | `raw.orders` + `raw.customers`                                   | DOWNSTREAM | `order_date`, `day_name`, `order_hour`, `delivery_delay_days`, `is_delivered` |
+| `analytics.order_items_enriched` | `raw.order_items` + `raw.products` + `raw.sellers` + translation | DOWNSTREAM | `category_english`, `total_item_value`, `freight_ratio`                       |
 
 ---
 
@@ -63,4 +63,4 @@ Table 2 — order_items_enriched:
 
 ## Why DOWNSTREAM?
 
-Tier 1 tables set `TARGET_LAG = DOWNSTREAM` because they exist solely to feed Tier 2 (`order_fact`). There is no reason to refresh them on a schedule — they refresh on demand, only when the fact table needs them. This avoids unnecessary compute.
+Silver Layer tables set `TARGET_LAG = DOWNSTREAM` because they exist solely to feed (`order_fact`). There is no reason to refresh them on a schedule — they refresh on demand, only when the fact table needs them. This avoids unnecessary compute.

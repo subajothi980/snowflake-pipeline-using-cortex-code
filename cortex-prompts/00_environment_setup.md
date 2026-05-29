@@ -6,7 +6,7 @@ Paste this prompt into **Cortex Code (CoCo)** in Snowsight to create the full Sn
 
 ---
 
-## Prompt
+## Prompt 1 - to setup environment.
 
 ```
 Using ACCOUNTADMIN, create a role called olist_role and grant it CREATE WAREHOUSE
@@ -58,16 +58,16 @@ and CREATE DATABASE privileges on the account. Then switch to olist_role and:
 
 ## What CoCo will create
 
-| Object | Type | Notes |
-|---|---|---|
-| `olist_role` | Role | Granted CREATE WAREHOUSE + CREATE DATABASE |
-| `olist_wh` | Warehouse | XL, 60s auto-suspend |
-| `olist_db` | Database | |
-| `olist_db.raw` | Schema | Source tables land here |
-| `olist_db.analytics` | Schema | Dynamic Tables land here |
-| 8 raw tables | Tables | Matching Olist CSV structure |
-| `olist_db.public.csv_format` | File format | CSV with quoted fields |
-| `olist_db.raw.olist_stage` | Stage | Internal stage for CSV upload |
+| Object                       | Type        | Notes                                      |
+| ---------------------------- | ----------- | ------------------------------------------ |
+| `olist_role`                 | Role        | Granted CREATE WAREHOUSE + CREATE DATABASE |
+| `olist_wh`                   | Warehouse   | XL, 60s auto-suspend                       |
+| `olist_db`                   | Database    |                                            |
+| `olist_db.raw`               | Schema      | Source tables land here                    |
+| `olist_db.analytics`         | Schema      | Dynamic Tables land here                   |
+| 8 raw tables                 | Tables      | Matching Olist CSV structure               |
+| `olist_db.public.csv_format` | File format | CSV with quoted fields                     |
+| `olist_db.raw.olist_stage`   | Stage       | Internal stage for CSV upload              |
 
 ---
 

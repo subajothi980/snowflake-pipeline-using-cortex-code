@@ -50,12 +50,12 @@ Validate the pipeline output after the latest refresh:
 
 ## Key columns to watch
 
-| Column | Healthy value | Action if not healthy |
-|---|---|---|
-| `refresh_action` | `INCREMENTAL` (after first run) | `FULL` is expected on first load or for product_performance_metrics |
-| `state` | `SUCCEEDED` | Check `error_message` column if `FAILED` |
-| `scheduling_state` | `ACTIVE` | `SUSPENDED` means the table has been paused — run `ALTER DYNAMIC TABLE ... RESUME` |
-| `duration_seconds` | Seconds, not minutes | Investigate source table row counts if unexpectedly slow |
+| Column             | Healthy value                   | Action if not healthy                                                              |
+| ------------------ | ------------------------------- | ---------------------------------------------------------------------------------- |
+| `refresh_action`   | `INCREMENTAL` (after first run) | `FULL` is expected on first load or for product_performance_metrics                |
+| `state`            | `SUCCEEDED`                     | Check `error_message` column if `FAILED`                                           |
+| `scheduling_state` | `ACTIVE`                        | `SUSPENDED` means the table has been paused — run `ALTER DYNAMIC TABLE ... RESUME` |
+| `duration_seconds` | Seconds, not minutes            | Investigate source table row counts if unexpectedly slow                           |
 
 ---
 
@@ -68,7 +68,7 @@ ALTER DYNAMIC TABLE olist_db.analytics.daily_sales_metrics RESUME;
 -- Suspend a table (pause automatic refreshes)
 ALTER DYNAMIC TABLE olist_db.analytics.daily_sales_metrics SUSPEND;
 
--- Force a manual refresh of all Tier 3 tables
+-- Force a manual refresh of all Gold layer tables
 ALTER DYNAMIC TABLE olist_db.analytics.daily_sales_metrics         REFRESH;
 ALTER DYNAMIC TABLE olist_db.analytics.product_performance_metrics REFRESH;
 

@@ -1,15 +1,15 @@
-# CoCo Prompt 02 — Tier 2: Order Fact Table
+# CoCo Prompt 02 — Silver Layer : Order Fact Table
 
 Paste this prompt into **Cortex Code (CoCo)** to build the central wide fact table.
 
-> **Note:** Tier 1 tables (`orders_enriched` and `order_items_enriched`) must exist before running this prompt.
+> **Note:** Silver Layer tables (`orders_enriched` and `order_items_enriched`) must exist before running this prompt.
 
 ---
 
 ## Prompt
 
 ```
-Build a Tier 2 dynamic table order_fact in olist_db.analytics using warehouse olist_wh.
+Build a Silver Layer dynamic table order_fact in olist_db.analytics using warehouse olist_wh.
 Use INITIALIZE = 'ON_SCHEDULE' and TARGET_LAG = DOWNSTREAM.
 
 Inner join olist_db.analytics.orders_enriched (alias o) with
@@ -44,19 +44,19 @@ Filter out null order_id and null product_id.
 
 ## What CoCo will create
 
-| Dynamic Table | Source | TARGET_LAG | Rows (approx) |
-|---|---|---|---|
-| `analytics.order_fact` | Both Tier 1 tables + raw payments + raw reviews | DOWNSTREAM | ~112k (one per order line item) |
+| Dynamic Table          | Source                                                | TARGET_LAG | Rows (approx)                   |
+| ---------------------- | ----------------------------------------------------- | ---------- | ------------------------------- |
+| `analytics.order_fact` | Both Silver layer tables + raw payments + raw reviews | DOWNSTREAM | ~112k (one per order line item) |
 
 ---
 
 ## What to verify before executing
 
-- [ ] `TARGET_LAG = DOWNSTREAM` — fact table only refreshes when Tier 3 asks
+- [ ] `TARGET_LAG = DOWNSTREAM` — fact table only refreshes when Gold layer asks
 - [ ] `INITIALIZE = ON_SCHEDULE`
 - [ ] Payment join uses a subquery with `GROUP BY order_id` — NOT a direct join (which would multiply rows)
 - [ ] Review join uses a subquery with `GROUP BY order_id` — same reason
-- [ ] Both Tier 1 source tables are referenced by their analytics schema path: `olist_db.analytics.orders_enriched`
+- [ ] Both Silver layer source tables are referenced by their analytics schema path: `olist_db.analytics.orders_enriched`
 
 ---
 
@@ -65,6 +65,7 @@ Filter out null order_id and null product_id.
 `order_payments` can have multiple rows per order (e.g. split payments). Joining directly to `order_fact` — which is already one row per order item — would create a fan-out (1 order item × 3 payments = 3 rows instead of 1).
 
 The subquery solution:
+
 ```sql
 LEFT JOIN (
   SELECT order_id,

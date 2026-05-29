@@ -1,15 +1,15 @@
-# CoCo Prompt 03 — Tier 3: Aggregated Metrics
+# CoCo Prompt 03 — Gold Layer: Aggregated Metrics
 
-Paste this prompt into **Cortex Code (CoCo)** to build both Tier 3 aggregated metric tables.
+Paste this prompt into **Cortex Code (CoCo)** to build both Gold layer aggregated metric tables.
 
-> **Note:** `order_fact` (Tier 2) must exist before running this prompt.
+> **Note:** `order_fact` (Silver Layer) must exist before running this prompt.
 
 ---
 
 ## Prompt
 
 ```
-Build 2 Tier 3 dynamic tables in olist_db.analytics using warehouse olist_wh.
+Build 2 Gold Layer dynamic tables in olist_db.analytics using warehouse olist_wh.
 Use INITIALIZE = 'ON_SCHEDULE' and TARGET_LAG = '1 hour' for both tables.
 
 Table 1 — daily_sales_metrics:
@@ -53,10 +53,10 @@ Table 2 — product_performance_metrics:
 
 ## What CoCo will create
 
-| Dynamic Table | Grain | TARGET_LAG | Key metrics |
-|---|---|---|---|
-| `analytics.daily_sales_metrics` | Date × customer state | 1 hour | Revenue, orders, delivery KPIs, review scores |
-| `analytics.product_performance_metrics` | Product × seller state | 1 hour | Revenue, units, freight ratio, satisfaction rate |
+| Dynamic Table                           | Grain                  | TARGET_LAG | Key metrics                                      |
+| --------------------------------------- | ---------------------- | ---------- | ------------------------------------------------ |
+| `analytics.daily_sales_metrics`         | Date × customer state  | 1 hour     | Revenue, orders, delivery KPIs, review scores    |
+| `analytics.product_performance_metrics` | Product × seller state | 1 hour     | Revenue, units, freight ratio, satisfaction rate |
 
 ---
 
@@ -64,15 +64,16 @@ Table 2 — product_performance_metrics:
 
 - [ ] Both tables use `TARGET_LAG = '1 hour'` (quoted string, not keyword)
 - [ ] Both tables use `INITIALIZE = ON_SCHEDULE`
-- [ ] Source is `olist_db.analytics.order_fact` (Tier 2 — not raw tables)
+- [ ] Source is `olist_db.analytics.order_fact` (Silver layer — not raw tables)
 - [ ] `satisfaction_rate` uses `NULLIF(reviews_received, 0)` to avoid division by zero
 - [ ] `avg_delay_days` and `avg_delivery_delay_days` filter on `is_delivered = true` (only meaningful for completed orders)
 
 ---
 
-## Why 1 hour lag for Tier 3?
+## Why 1 hour lag for Gold layer tables?
 
 Tier 3 tables are the ones dashboards and the Cortex Agent query directly. Setting `TARGET_LAG = '1 hour'` means:
+
 - Aggregates are never more than 1 hour stale
 - Refreshes happen on a schedule — no manual trigger needed after the initial load
-- Snowflake automatically cascades to Tier 1 and Tier 2 when a Tier 3 refresh fires
+- Snowflake automatically cascades to Silver layer enrichment and fact table when a Gold layer refresh fires
