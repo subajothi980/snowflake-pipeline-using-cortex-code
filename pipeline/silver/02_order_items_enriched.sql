@@ -1,5 +1,5 @@
 -- ============================================================
--- Tier 1 — order_items_enriched
+-- Silver — order_items_enriched
 -- Joins raw.order_items with raw.products, raw.sellers,
 -- and raw.product_category_name_translation.
 -- TARGET_LAG = DOWNSTREAM

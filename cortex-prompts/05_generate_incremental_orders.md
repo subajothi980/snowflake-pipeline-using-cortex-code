@@ -40,7 +40,7 @@ How many rows are currently in olist_db.raw.orders and olist_db.raw.order_items?
 ### Step 2 — Insert synthetic orders
 
 ```
-Call olist_db.raw.generate_demo_orders(500)
+Call olist_db.raw.generate_incremental_orders(500)
 ```
 
 ### Step 3 — Trigger refresh (Gold layer only — Snowflake cascades upstream)

@@ -1,8 +1,8 @@
 -- ============================================================
 -- trigger_initial_load.sql
--- Manually triggers a refresh of the two Tier 3 tables.
+-- Manually triggers a refresh of the two Gold layer aggregate tables.
 -- Snowflake resolves the dependency graph automatically and
--- refreshes Tier 1 → Tier 2 → Tier 3 in the correct order.
+-- refreshes Silver layer enriched → Silver layer fact → Gold layer aggregates in the correct order.
 -- ============================================================
 
 USE ROLE      olist_role;

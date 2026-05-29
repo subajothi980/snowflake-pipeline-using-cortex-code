@@ -87,11 +87,11 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
 | Concept                    | How it's used                                                                                                |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | **Cortex Code**            | Data engineering co-pilot in Snowsight                                                                       |
-| `TARGET_LAG = DOWNSTREAM`  | Tier 1 & 2 tables refresh only when requested by the next tier — no wasted compute                           |
-| `TARGET_LAG = '1 hour'`    | Tier 3 aggregates stay at most 1 hour behind source data                                                     |
+| `TARGET_LAG = DOWNSTREAM`  | Silver enriched,fact tables refresh only when requested by the next tier — no wasted compute                 |
+| `TARGET_LAG = '1 hour'`    | Gold aggregates stay at most 1 hour behind source data                                                       |
 | `INITIALIZE = ON_SCHEDULE` | All tables are created empty; the first load is triggered manually, separating _definition_ from _execution_ |
 | **Incremental refresh**    | Snowflake processes only changed rows per cycle — not the full dataset                                       |
-| **Dependency graph**       | Refreshing a Tier 3 table automatically cascades through Tier 2 → Tier 1 in the right order                  |
+| **Dependency graph**       | Refreshing a Gold table automatically cascades through Silver fact → Silver enriched in the right order      |
 | **Cortex Agent**           | A natural language interface powered by a semantic view over all 5 dynamic tables                            |
 
 ---
@@ -148,7 +148,7 @@ Open **Snowsight → Cortex code** panel by clicking the Cortex Code icon in the
 You'll see a chat interface. You'll paste prompts from each section directly into CoCo. CoCo will generate the SQL, explain what it's doing, and execute it for you.
 ```
 
-Copy "Prompt 1" from /cortex_prompts/00_environment_setup.md and paste it in the CoCo chat window and enter.
+Copy "Prompt 00" from /cortex_prompts/00_environment_setup.md and paste it in the CoCo chat window and enter.
 
 This creates:
 
@@ -160,53 +160,55 @@ This creates:
 
 ### 3 — Upload and load CSVs
 
--- Then load (repeat for all 8 tables):
-COPY INTO olist_db.raw.orders
-FROM @olist_db.raw.olist_stage/orders/
-FILE_FORMAT = olist_db.public.csv_format
-ON_ERROR = CONTINUE;
-
-```bash
-snowsql -c my_connection -f setup/02_upload_and_load.sql
-```
-
-This `PUT`s all CSVs to the internal stage and runs `COPY INTO` for each table. Expected row counts are printed at the end for validation.
-
-> **Snowsight UI alternative:** Go to **Data → Add Data → Load files into a stage**, upload each CSV manually, then run only the `COPY INTO` blocks from `setup/02_upload_and_load.sql`.
+**Snowsight UI alternative:** Go to **Data → Add Data → Load files into a stage**, upload each CSV manually, then run only the `COPY INTO` blocks from `setup/02_upload_and_load.sql`.
 
 ### 4 — Deploy the pipeline
 
-```bash
-# Tier 1 — Enrichment (DOWNSTREAM)
-snowsql -c my_connection -f pipeline/tier1/01_orders_enriched.sql
-snowsql -c my_connection -f pipeline/tier1/02_order_items_enriched.sql
+Paste Prompt 01 from /cortex_prompts/01_silver_enrichment.md into **Cortex Code (CoCo)** to build both Silver Layer enrichment Dynamic Tables(orders_enriched and order_items_enriched).
 
-# Tier 2 — Fact table (DOWNSTREAM)
-snowsql -c my_connection -f pipeline/tier2/01_order_fact.sql
+Both tables use `TARGET_LAG = DOWNSTREAM` and `INITIALIZE = ON_SCHEDULE` and return immediately — no waiting for an initial full scan.
 
-# Tier 3 — Aggregated metrics (1 hour lag)
-snowsql -c my_connection -f pipeline/tier3/01_daily_sales_metrics.sql
-snowsql -c my_connection -f pipeline/tier3/02_product_performance_metrics.sql
-```
+Paste Prompt 02 from /cortex_prompts/02_silver_fact_table.md into **Cortex Code (CoCo)** to build the central wide fact table(order_fact).
 
-All tables use `INITIALIZE = ON_SCHEDULE` and return immediately — no waiting for an initial full scan.
+`TARGET_LAG = DOWNSTREAM` — fact table only refreshes when Gold layer asks.
+
+Paste Prompt 03 from /cortex_prompts/03_gold_metrics.md into **Cortex Code (CoCo)** to build both Gold layer aggregated metric tables.
+
+Both gold layer tables use `TARGET_LAG = '1 hour'` (quoted string, not keyword) and `INITIALIZE = ON_SCHEDULE`.
 
 ### 5 — Trigger the initial load
 
-```bash
-snowsql -c my_connection -f pipeline/trigger_initial_load.sql
-```
+Paste Prompt 04 from /cortex_prompts/04_trigger_initial_load.md into **Cortex Code (CoCo)** to kick off the first full data load across all five Dynamic Tables.
 
-This refreshes only the two Tier 3 tables. Snowflake automatically resolves the dependency graph and refreshes Tier 1 → Tier 2 → Tier 3 in the correct order.
+This refreshes only the two Gold layer tables. Snowflake automatically resolves the dependency graph and refreshes Silver enriched → Silver fact → Gold tables in the correct order.
 
-### 6 — (Optional) Deploy the Cortex Agent
+Paste Prompt 05 from /cortex_prompts/05_generate_incremental_orders.md into **Cortex Code (CoCo)** to create a stored procedure that generates synthetic orders. Used to demonstrate incremental refresh without needing a live data stream. And follow the instructions to test the pipeline with incremental data.
 
-```bash
-snowsql -c my_connection -f agent/01_semantic_view.sql
-snowsql -c my_connection -f agent/02_cortex_agent.sql
-```
+Paste any of the prompt from /cortex_prompts/06_monitoring.md into **Cortex Code (CoCo)** to monitor pipeline health conversationally.
 
-Access your agent in **Snowsight → AI & ML → Snowflake Intelligence**.
+### 6 — Deploy the Cortex Agent
+
+Paste the prompts from /cortex_prompts/07_semantic_view_and_agent.md into **Cortex Code (CoCo)** to create the semantic view and Cortex Agent that powers natural language querying over your pipeline.
+
+## How to access your agent
+
+1. In Snowsight, go to **AI & ML → Snowflake Intelligence**
+2. Select **olist_analytics_agent** from the agent list
+3. Start asking questions in plain English
+
+---
+
+## Sample questions to try
+
+| Question                                                                     | What it demonstrates                         |
+| ---------------------------------------------------------------------------- | -------------------------------------------- |
+| "What are the top 10 product categories by revenue?"                         | Aggregation over product_performance_metrics |
+| "Show me daily revenue trends for the past 30 days"                          | Time-series over daily_sales_metrics         |
+| "Which customer states have the worst average delivery delays?"              | Filtering + grouping on delivery_delay_days  |
+| "Compare weekend vs weekday order volumes"                                   | day_name dimension                           |
+| "Which sellers have the highest satisfaction rate with at least 50 reviews?" | HAVING-style filter on product metrics       |
+| "What payment types are most common for high-value orders?"                  | payment_type dimension + price fact          |
+| "Show me categories where freight is more than 20% of the item price"        | Derived metric from avg_freight_ratio        |
 
 ---
 
@@ -223,18 +225,17 @@ snowflake-pipeline-using-cortex-code/
 │   └── 02_upload_and_load.sql          # PUT commands + COPY INTO for all 8 CSV files
 │
 ├── pipeline/
-│   ├── trigger_initial_load.sql        # Kicks off the Tier 3 refresh (cascades upstream)
-│   ├── tier1/
+│   ├── trigger_initial_load.sql        # Kicks off the Gold layer refresh (cascades upstream)
+│   ├── Silver/
 │   │   ├── 01_orders_enriched.sql      # Orders + customers + temporal dims + delivery delay
 │   │   └── 02_order_items_enriched.sql # Items + products + sellers + category translation
-│   ├── tier2/
-│   │   └── 01_order_fact.sql           # Wide fact table — joins both Tier 1 + payments + reviews
-│   └── tier3/
+│   │   └── 03_order_fact.sql           # Wide fact table — joins both Silver enriched tables + payments + reviews
+│   └── Gold/
 │       ├── 01_daily_sales_metrics.sql  # Aggregated by date + customer state (1 hour lag)
 │       └── 02_product_performance_metrics.sql  # By product + seller state (1 hour lag)
 │
 ├── procedures/
-│   └── generate_demo_orders.sql        # Inserts synthetic orders to test incremental refresh
+│   └── generate_incremental_orders.sql # Inserts synthetic orders to test incremental refresh
 │
 ├── monitoring/
 │   └── refresh_history.sql             # 4 observability queries: latest refresh, health, 24h history, row counts
@@ -255,11 +256,11 @@ snowflake-pipeline-using-cortex-code/
 
 ## Testing Incremental Refresh
 
-The `generate_demo_orders` stored procedure inserts synthetic orders derived from real data — useful for observing how Dynamic Tables handle new rows without needing a live data stream.
+The `generate_incremental_orders` stored procedure inserts synthetic orders derived from real data — useful for observing how Dynamic Tables handle new rows without needing a live data stream.
 
 ```sql
 -- Insert 500 synthetic orders
-CALL olist_db.raw.generate_demo_orders(500);
+CALL olist_db.raw.generate_incremental_orders(500);
 
 -- Trigger refresh (only Tier 3 — Snowflake cascades upstream automatically)
 ALTER DYNAMIC TABLE olist_db.analytics.daily_sales_metrics         REFRESH;

@@ -72,7 +72,7 @@ Table 2 — product_performance_metrics:
 
 ## Why 1 hour lag for Gold layer tables?
 
-Tier 3 tables are the ones dashboards and the Cortex Agent query directly. Setting `TARGET_LAG = '1 hour'` means:
+Gold layer tables are the ones dashboards and the Cortex Agent query directly. Setting `TARGET_LAG = '1 hour'` means:
 
 - Aggregates are never more than 1 hour stale
 - Refreshes happen on a schedule — no manual trigger needed after the initial load

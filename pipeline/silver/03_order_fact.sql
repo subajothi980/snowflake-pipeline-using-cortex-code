@@ -1,7 +1,7 @@
 -- ============================================================
--- Tier 2 — order_fact
+-- Silver — order_fact
 -- Wide fact table. One row per order line item.
--- Joins Tier 1 enriched tables with payment and review data.
+-- Joins Silver layer enriched tables with payment and review data.
 -- Payment and review are pre-aggregated to order level to
 -- prevent row fan-out.
 -- TARGET_LAG = DOWNSTREAM

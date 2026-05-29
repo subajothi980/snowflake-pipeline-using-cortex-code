@@ -6,7 +6,7 @@ Paste this prompt into **Cortex Code (CoCo)** in Snowsight to create the full Sn
 
 ---
 
-## Prompt 1 - to setup environment.
+## Prompt - to setup environment.
 
 ```
 Using ACCOUNTADMIN, create a role called olist_role and grant it CREATE WAREHOUSE

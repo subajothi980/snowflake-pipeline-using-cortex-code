@@ -1,17 +1,17 @@
 -- ============================================================
--- generate_demo_orders.sql
+-- generate_incremental_orders.sql
 -- Stored procedure to insert synthetic orders for testing
 -- incremental refresh behaviour without real new data.
 --
 -- Usage:
---   CALL olist_db.raw.generate_demo_orders(500);
+--   CALL olist_db.raw.generate_incremental_orders(500);
 -- ============================================================
 
 USE ROLE      olist_role;
 USE WAREHOUSE olist_wh;
 USE DATABASE  olist_db;
 
-CREATE OR REPLACE PROCEDURE olist_db.raw.generate_demo_orders(num_rows INTEGER)
+CREATE OR REPLACE PROCEDURE olist_db.raw.generate_incremental_orders(num_rows INTEGER)
 RETURNS STRING
 LANGUAGE SQL
 AS

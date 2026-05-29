@@ -1,8 +1,8 @@
 -- ============================================================
--- Tier 1 — orders_enriched
+-- Silver — orders_enriched
 -- Joins raw.orders with raw.customers.
 -- Adds temporal dimensions and delivery performance columns.
--- TARGET_LAG = DOWNSTREAM  (refreshes on demand from Tier 2)
+-- TARGET_LAG = DOWNSTREAM  (refreshes on demand from Silver)
 -- INITIALIZE  = ON_SCHEDULE (created empty; first load is manual)
 -- ============================================================
 
