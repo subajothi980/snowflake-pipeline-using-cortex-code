@@ -2,7 +2,7 @@
 
 # 🛒 Olist E-Commerce — Snowflake Dynamic Tables Pipeline
 
-**A production-grade, three-tier declarative data pipeline using Snowflake Dynamic Tables**  
+**A production-grade, three-layer declarative data pipeline using Snowflake Dynamic Tables**  
 Built with the [Brazilian E-Commerce (Olist) dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)·
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-Dynamic%20Tables-29B5E8?style=flat-square&logo=snowflake&logoColor=white)
@@ -87,7 +87,7 @@ The pipeline ingests raw Olist e-commerce data (orders, products, sellers, revie
 | Concept                    | How it's used                                                                                                |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | **Cortex Code**            | Data engineering co-pilot in Snowsight                                                                       |
-| `TARGET_LAG = DOWNSTREAM`  | Silver enriched,fact tables refresh only when requested by the next tier — no wasted compute                 |
+| `TARGET_LAG = DOWNSTREAM`  | Silver enriched,fact tables refresh only when requested by the next layer — no wasted compute                |
 | `TARGET_LAG = '1 hour'`    | Gold aggregates stay at most 1 hour behind source data                                                       |
 | `INITIALIZE = ON_SCHEDULE` | All tables are created empty; the first load is triggered manually, separating _definition_ from _execution_ |
 | **Incremental refresh**    | Snowflake processes only changed rows per cycle — not the full dataset                                       |
@@ -260,7 +260,7 @@ The `generate_incremental_orders` stored procedure inserts synthetic orders deri
 -- Insert 500 synthetic orders
 CALL olist_db.raw.generate_incremental_orders(500);
 
--- Trigger refresh (only Tier 3 — Snowflake cascades upstream automatically)
+-- Trigger refresh (only Gold layer — Snowflake cascades upstream automatically)
 ALTER DYNAMIC TABLE olist_db.analytics.daily_sales_metrics         REFRESH;
 ALTER DYNAMIC TABLE olist_db.analytics.product_performance_metrics REFRESH;
 
