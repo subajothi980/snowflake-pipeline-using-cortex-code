@@ -358,6 +358,12 @@ The `cortex-prompts/` folder contains **copy-paste prompts** for Snowflake's AI 
 
 > The SQL files in `pipeline/`, `procedures/`, and `agent/` are the exact DDL CoCo should produce — use them as a reference or run them directly as a fallback if needed.
 
+---
+
+![CoCo Prompt](https://github.com/user-attachments/assets/11545fe9-87a3-49f5-a008-2de41458c6ab)
+
+---
+
 <div align="center">
 <sub>Built as a learning project. Not affiliated with Olist or Snowflake.</sub>
 </div>
