@@ -329,10 +329,6 @@ DROP ROLE      IF EXISTS olist_role;
 
 ---
 
-<div align="center">
-<sub>Built as a learning project. Not affiliated with Olist or Snowflake.</sub>
-</div>
-
 ---
 
 ## Using Cortex Code (CoCo) Prompts
@@ -349,15 +345,19 @@ The `cortex-prompts/` folder contains **copy-paste prompts** for Snowflake's AI 
 
 ### Prompt sequence
 
-| Prompt file                                    | Builds                                                |
-| ---------------------------------------------- | ----------------------------------------------------- |
-| `cortex-prompts/00_environment_setup.md`       | Role, warehouse, DB, schemas, 8 raw tables, stage     |
-| `cortex-prompts/01_silver_enrichment.md`       | `orders_enriched` + `order_items_enriched`            |
-| `cortex-prompts/02_silver_fact_table.md`       | `order_fact` wide fact table                          |
-| `cortex-prompts/03_gold_metrics.md`            | `daily_sales_metrics` + `product_performance_metrics` |
-| `cortex-prompts/04_trigger_initial_load.md`    | Triggers the first full pipeline refresh              |
-| `cortex-prompts/05_generate_test_data.md`      | Stored procedure for synthetic order generation       |
-| `cortex-prompts/06_monitoring.md`              | Refresh history + health check queries                |
-| `cortex-prompts/07_semantic_view_and_agent.md` | Cortex semantic view + AI Agent                       |
+| Prompt file                                        | Builds                                                |
+| -------------------------------------------------- | ----------------------------------------------------- |
+| `cortex-prompts/00_environment_setup.md`           | Role, warehouse, DB, schemas, 8 raw tables, stage     |
+| `cortex-prompts/01_silver_enrichment.md`           | `orders_enriched` + `order_items_enriched`            |
+| `cortex-prompts/02_silver_fact_table.md`           | `order_fact` wide fact table                          |
+| `cortex-prompts/03_gold_metrics.md`                | `daily_sales_metrics` + `product_performance_metrics` |
+| `cortex-prompts/04_trigger_initial_load.md`        | Triggers the first full pipeline refresh              |
+| `cortex-prompts/05_generate_incremental_orders.md` | Stored procedure for synthetic order generation       |
+| `cortex-prompts/06_monitoring.md`                  | Refresh history + health check queries                |
+| `cortex-prompts/07_semantic_view_and_agent.md`     | Cortex semantic view + AI Agent                       |
 
 > The SQL files in `pipeline/`, `procedures/`, and `agent/` are the exact DDL CoCo should produce — use them as a reference or run them directly as a fallback if needed.
+
+<div align="center">
+<sub>Built as a learning project. Not affiliated with Olist or Snowflake.</sub>
+</div>
