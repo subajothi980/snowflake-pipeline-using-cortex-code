@@ -360,7 +360,15 @@ The `cortex-prompts/` folder contains **copy-paste prompts** for Snowflake's AI 
 
 ---
 
+## Screenshots
+
 ![CoCo Prompt](https://github.com/user-attachments/assets/11545fe9-87a3-49f5-a008-2de41458c6ab)
+
+![CoCo Prompt 2](https://github.com/user-attachments/assets/01dadaa8-4fed-4e3f-afbc-a11905f45044)
+
+![Dependencies for semantic model](https://github.com/user-attachments/assets/b6e63897-8567-4fcb-acd8-864d39d43e8b)
+
+![Dependency Graph](https://github.com/user-attachments/assets/a61536b8-c71b-4f92-884c-10337c563d0b)
 
 ---
 
